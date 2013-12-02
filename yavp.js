@@ -616,13 +616,19 @@
 		},
 		'regexp'     : function (result, params) {
 			return params.regexp.test(this.val());
-		}
+		},
+		'checked'    : function () {
+			var $element = this;
+			
+			return $element.is(':checked');
+		} 
 	};
 	
 	$.fn.yavp.messages = {
 		'format'    : 'Incorrect format',
 		'equals'    : "Fields don't match",
 		'required'  : 'Required field',
+		'checked'   : 'Please check this box',
 		'range'     : function (params) {
 			if (params.min && params.max) {
 				return 'Please pick a number between ' + params.min + ' and ' + params.max;
