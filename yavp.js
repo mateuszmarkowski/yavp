@@ -617,10 +617,8 @@
 		'regexp'     : function (result, params) {
 			return params.regexp.test(this.val());
 		},
-		'checked'    : function () {
-			var $element = this;
-			
-			return $element.is(':checked');
+		'checked'    : function () {			
+			return this.is(':checked');
 		} 
 	};
 	
