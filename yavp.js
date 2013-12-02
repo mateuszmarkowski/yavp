@@ -617,7 +617,10 @@
 		'regexp'     : function (result, params) {
 			return params.regexp.test(this.val());
 		},
-		'checked'    : function () {			
+		'checked'    : function () {
+			//no point in caching it
+			result.dont_cache();
+					
 			return this.is(':checked');
 		} 
 	};
