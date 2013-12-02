@@ -368,7 +368,9 @@
 								dont_cache = true;
 							},
 							//if we pass true as stop, we won't process further validatiors and  weill fire apply_success immedietaly 
-							success : function (stop = false) {
+							success : function (stop) {
+								var stop = typeof stop === 'undefined' ? false : stop;
+							
 								if (this.status === 'inactive') {
 									return this;
 								}
@@ -617,7 +619,7 @@
 		'regexp'     : function (result, params) {
 			return params.regexp.test(this.val());
 		},
-		'checked'    : function () {
+		'checked'    : function (result) {
 			//no point in caching it
 			result.dont_cache();
 					
