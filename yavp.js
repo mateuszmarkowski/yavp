@@ -29,8 +29,13 @@
 			//WE NEED TO CHANGE ITS NAME, IT'S CONFUSING
 			selector_events = [];
 			
-		//if yavp has already been assigned to this element, let's just return public interface
-		if (this.data('yavp')) {
+		//if yavp has already been assigned to this element
+		if (this.data('yavp') && typeof args[0] === 'string') {
+			//user can pass string to call a function
+			this.data('yavp')[args[0]]();
+			return this;
+		} else if (this.data('yavp')) {
+			//or pass nothing to get the public interface
 			return this.data('yavp');
 		}
 		
@@ -56,7 +61,8 @@
 	
 			function process_elements() {
 				//if selector_events is not empty we need to clear all elements data, because user has used refresh
-				var force_overwrite = selector_events.length > 0 ? true : false;
+				var tmpArray,
+					force_overwrite = selector_events.length > 0 ? true : false;
 				
 				//we have to collect all selectors so we can bind events to them using bind_events()
 				selector_events = [];
