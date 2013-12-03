@@ -12,6 +12,8 @@
 				elementError  : Yavp.elementError   || null,
 				before        : Yavp.before         || null,
 				after         : Yavp.after          || null,
+				elementBefore : Yavp.elementBefore  || null,
+				elementAfter  : Yavp.elementAfter   || null,
 				triggers      : Yavp.trigers        || ['change', 'keydown'],
 				debounce      : Yavp.debounce       || 350,
 				validators    : Yavp.validators     || {},
@@ -288,7 +290,11 @@
 						//element is still being validated, i.e. AJAX request is in process, we need to make sure that the result will be ignored
 						$element.data('yavp.async_result').revoke();
 					}
-										
+					
+					if (settings.elementBefore) {
+						settings.elementBefore.call($element);
+					}
+								
 					function apply_success() {
 						var $this = $(this);
 												
@@ -301,7 +307,7 @@
 						}
 							
 						if (settings.elementSuccess) {
-							settings.elementSuccess.call(this);
+							settings.elementSuccess.call($this);
 						}
 
 					}
@@ -411,6 +417,10 @@
 							apply_success.call($element);
 					}).fail(function () {
 						console.log('element deferred fail');
+					}).always(function () {
+						if (settings.elementAfter) {
+							settings.elementAfter.call($element);
+						}
 					});	
 					
 					//let's check with the error cache first
@@ -630,7 +640,12 @@
 			result.dont_cache();
 					
 			return this.is(':checked');
-		} 
+		},
+		'year'       : function (result) {
+			var val = this.val();
+			//we consider reasonable years as those between 1900 and 2100
+			return /^[0-9]{4}$/.test(val) && val >= 1900 && val <= 2100;
+		}
 	};
 	
 	$.fn.yavp.messages = {
