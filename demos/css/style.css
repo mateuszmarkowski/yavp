@@ -1,0 +1,22 @@
+body {
+	padding-top: 25px;
+}
+label.required:after {
+	content    : '*';
+	color      : #b50000;
+	margin-left: 3px;
+}
+button.delete-product {
+	margin-top : 24px;
+}
+p.lead.instructions {
+	font-size   : 17px;
+}
+/*
+Ajax loader gif comes from http://www.ajaxload.info/	
+*/
+input.processing {
+	background-image    : url('../img/ajax-loader.gif');
+	background-repeat   : no-repeat;
+	background-position : 98% 50%; 	
+}

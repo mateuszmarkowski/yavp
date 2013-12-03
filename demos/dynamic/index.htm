@@ -1,0 +1,166 @@
+<!doctype>
+
+<html lang="en">
+	<head>
+		<title>Dynamically added fields - Yavp demo</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="../css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/style.css" rel="stylesheet">
+	</head>
+	<body>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-6 col-md-offset-3">
+					<div class="well">
+						<form id="product-form" method="post" action="index.htm">
+							<div class="row">
+								<div class="col-md-12">
+									<p class="lead instructions">Pick products you want to order. Min order quantity is 1, max is 100.
+								</div>
+								
+							</div>
+							<div class="row">
+								<div class="col-md-12">
+									<button class="btn btn-info btn-xs pull-right" id="add-product">Add Product</button>
+									<div class="clearfix"></div>
+								</div>
+							</div>
+							<br>
+							<span id="products-container">
+								<div class="row product-row">
+									<div class="form-group col-md-7">
+										<label for="name_1" class="required">Name:</label>
+										<input type="text" class="form-control name" id="name_1" name="products[1][name]">
+									</div>
+									<div class="form-group col-md-3">
+										<label for="quantity_1" class="required">Quantity:</label>
+										<input type="text" class="form-control quantity" id="quantity_1" name="products[1][quantity]">
+									</div>
+									<div class="col-md-2">
+										<button class="btn btn-danger delete-product btn-no-text pull-right">Delete</button>
+									</div>
+								</div>
+							</span>
+							<button type="submit" class="btn btn-info btn-block">Place Order!</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		
+		</div>
+		
+		
+		<script src="https://code.jquery.com/jquery.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../../yavp.js"></script>
+		<script>
+			$(document).ready(function () {
+				//will be used to assign correct names and ids to new product rows
+				var current_id = 1;
+			
+				//delete button should remove its row
+				$('#product-form').on('click', '.delete-product', function (e) {
+					e.preventDefault();
+					
+					$(this).parents('.product-row').fadeOut('fast', function () {
+						$(this).remove();
+						
+						//crucial part, make Yavp process the form elements again
+						$('#product-form').yavp('refresh');
+					})
+				});
+				
+				$('#add-product').on('click', function (e) {
+					var product_row = 
+							'<div class="row product-row">' +
+								'<div class="form-group col-md-7">' +
+									'<label for="name_%id%" class="required">Name:</label>' +
+									'<input type="text" class="form-control name" id="name_%id%" name="products[%id%][name]">' +
+								'</div>' +
+								'<div class="form-group col-md-3">' +
+									'<label for="quantity_%id%" class="required">Quantity:</label>' +
+									'<input type="text" class="form-control quantity" id="quantity_%id%" name="products[%id%][quantity]">' +
+								'</div>' +
+								'<div class="col-md-2">' +
+									'<button class="btn btn-danger delete-product btn-no-text pull-right">Delete</button>' +
+								'</div>' +
+							'</div>';
+				
+					e.preventDefault();
+					
+					$(product_row.replace(/%id%/g, ++current_id))
+						.hide()
+						.appendTo($('#products-container'))
+						.fadeIn('fast');
+					
+					//crucial part, make Yavp process the form elements again
+					$('#product-form').yavp('refresh');
+				});
+				
+			});
+			
+			$('#product-form').yavp({
+				elementError : function (message) {
+					var $element    = this,
+						$form_group = $element.parents('.form-group:first'),
+						$help_block = $form_group.find('.help-block.yavp-error');
+				
+					if (!$form_group.hasClass('has-error')) {
+						$form_group.addClass('has-error');
+					}
+					
+					if ($help_block.length === 0) {
+						$help_block = $('<span class="help-block yavp-error">').hide();
+						$help_block.appendTo($form_group);
+					}
+					
+					$help_block.text(message);
+				
+					if (!$help_block.is(':visible')) {
+						$help_block.fadeIn('fast');
+					}	
+				},
+				elementSuccess : function () {
+					var $element    = this,
+						$form_group = $element.parents('.form-group:first'),
+						$help_block = $form_group.find('.help-block.yavp-error');
+					
+					if ($form_group.hasClass('has-error')) {
+						$form_group.removeClass('has-error');
+					}
+					
+					if ($help_block.length === 1) {
+						$help_block.fadeOut('fast');
+					}					
+					
+				},
+				fields : [
+					{
+						selector  : '.name',
+						messages  : {
+							format : 'Only digits, letters and spaces allowed'	
+						},
+						validators: [
+							'required',
+							/^[a-z0-9 ]+$/i
+						]	
+					},
+					{
+						selector  : '.quantity',
+						validators: [
+							'required',
+							'number',
+							{
+								validator : 'range',
+								min       : 1,
+								max       : 99
+							}
+						]	
+					},
+				]
+			});
+		
+		</script>
+	</body>
+</html>

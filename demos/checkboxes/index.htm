@@ -1,0 +1,116 @@
+<!doctype>
+
+<html lang="en">
+	<head>
+		<title>Signup - Yavp demo</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="../css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/style.css" rel="stylesheet">
+	</head>
+	<body>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-6 col-md-offset-3">
+					<div class="well">
+						<p class="lead instructions">Pick newsletters you want to subscribe to (max. 2)</p>
+						<form id="subscribe-form" method="post" action="index.htm">
+							<div class="form-group" id="newsletters">
+								<div  class="checkbox">
+									<label for="security">
+										<input type="checkbox" name="newsletters[security]" id="security" value="1"> Security Advisories
+									</label>
+								</div>
+								<div  class="checkbox">
+									<label for="product_updates">
+										<input type="checkbox" name="newsletters[product_updates]" id="product_updates" value="1"> Product Updates
+									</label>
+								</div>
+								<div  class="checkbox">
+									<label for="special_deals">
+										<input type="checkbox" name="newsletters[special_deals]" id="special_deals" value="1"> Special Deals
+									</label>
+								</div>
+								<div  class="checkbox">
+									<label for="3rd_party">
+										<input type="checkbox" name="newsletters[3rd_party]" id="3rd_party" value="1"> 3rd Party Offers
+									</label>
+								</div>
+							</div>
+							<button type="submit" class="btn btn-info btn-block">Subscribe!</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		
+		</div>
+		
+		
+		<script src="https://code.jquery.com/jquery.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../../yavp.js"></script>
+		<script>
+			$(document).ready(function () {
+				$('#subscribe-form').yavp({
+					elementError : function (message) {
+						var $element    = this,
+							$form_group = $element.parents('.form-group:first'),
+							$help_block = $form_group.find('.help-block.yavp-error');
+					
+						if (!$form_group.hasClass('has-error')) {
+							$form_group.addClass('has-error');
+						}
+						
+						if ($help_block.length === 0) {
+							$help_block = $('<span class="help-block yavp-error">').hide();
+							$help_block.appendTo($form_group);
+						}
+						
+						$help_block.text(message);
+					
+						if (!$help_block.is(':visible')) {
+							$help_block.fadeIn('fast');
+						}	
+					},
+					elementSuccess : function () {
+						var $element    = this,
+							$form_group = $element.parents('.form-group:first'),
+							$help_block = $form_group.find('.help-block.yavp-error');
+						
+						if ($form_group.hasClass('has-error')) {
+							$form_group.removeClass('has-error');
+						}
+						
+						if ($help_block.length === 1) {
+							$help_block.fadeOut('fast');
+						}					
+						
+					},
+					fields : [
+						{
+							selector           : '#newsletters [type="checkbox"]',
+							validators         : [
+								function (result) {
+									//how many checkboxes have been checked?
+									var checked = this
+										.parents('#newsletters')
+										.find('[type="checkbox"]:checked')
+										.length;
+										
+									if (checked === 0) {
+										result.error("Hey, pick at least one!");
+									} else if (checked > 2) {
+										result.error("No more than 2, please!");
+									} else {
+										return true;
+									}
+								}
+							]
+							
+						}
+					]
+				});				
+			});
+		</script>
+	</body>
+</html>

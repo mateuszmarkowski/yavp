@@ -1,0 +1,129 @@
+<!doctype>
+
+<html lang="en">
+	<head>
+		<title>Signup - Yavp demo</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="../css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/style.css" rel="stylesheet">
+	</head>
+	<body>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-4">
+					<div class="well">
+						<p class="lead">Sign Up Form</p>
+						<form id="signup-form" method="post" action="index.htm">
+							<div class="form-group">
+								<label for="name" class="required">Name:</label>
+								<input type="text" class="form-control" id="name" name="name">
+							</div>
+							<div class="form-group">
+								<label for="email" class="required">Email: <span class="text-muted">(enter john@doe.net to trigger an error)</span></label>
+								<input type="text" class="form-control" id="email" name="email">
+							</div>
+							<div class="form-group">
+								<label for="email_secondary">Secondary email:</label>
+								<input type="text" class="form-control" id="email_secondary" name="email_secondary">
+							</div>
+							<div class="form-group">
+								<label for="password" class="required">Password:</label>
+								<input type="password" class="form-control" id="password" name="password">
+							</div>
+							<div class="form-group">
+								<label for="password_confirm" class="required">Password Confirm:</label>
+								<input type="password" class="form-control" id="password_confirm" name="password_confirm">
+							</div>
+							<div class="form-group">
+								<div class="checkbox">
+									<label for="tos">
+										<input type="checkbox" name="tos" id="tos"> I agree to the terms of service.
+									</label>
+								</div>
+							</div>
+							<button type="submit" class="btn btn-info btn-block">Signup!</button>
+						</form>
+					</div>
+				</div>
+				
+				<div class="col-md-4">
+					<div class="well">
+						<p class="lead">Account Form</p>
+						<form id="account-form" method="post" action="index.htm">
+							<div class="form-group">
+								<label for="name" class="required">Name:</label>
+								<input type="text" class="form-control" id="name" name="name">
+							</div>
+							<div class="form-group">
+								<label for="email" class="required">Email: <span class="text-muted">(enter john@doe.net to trigger an error)</span></label>
+								<input type="text" class="form-control" id="email" name="email">
+							</div>
+							<div class="form-group">
+								<label for="email_secondary">Secondary email:</label>
+								<input type="text" class="form-control" id="email_secondary" name="email_secondary">
+							</div>
+							<button type="submit" class="btn btn-info btn-block">Save!</button>
+						</form>
+					</div>
+				</div>
+				
+				<div class="col-md-4">
+					<div class="well">
+						<p class="lead">Password Form</p>
+						<form id="password-form" method="post" action="index.htm">
+							<div class="form-group">
+								<label for="password" class="required">Password:</label>
+								<input type="password" class="form-control" id="password" name="password">
+							</div>
+							<div class="form-group">
+								<label for="password_confirm" class="required">Password Confirm:</label>
+								<input type="password" class="form-control" id="password_confirm" name="password_confirm">
+							</div>
+							<button type="submit" class="btn btn-info btn-block">Save!</button>
+						</form>
+					</div>
+				</div>						
+			</div>
+		
+		</div>
+		
+		
+		<script src="https://code.jquery.com/jquery.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../../yavp.js"></script>
+		<script src="yavp-settings.js"></script>
+		<script>
+			$(document).ready(function () {
+				$('#signup-form').yavp({
+					//these are all defined in yavp-settings.js 
+					fields : [
+						'user.name',
+						'user.email',
+						'user.email_secondary',
+						'user.password',
+						'user.password_confirm',
+						'user.tos'
+					]
+				});
+				
+				$('#account-form').yavp({
+					//these are all defined in yavp-settings.js 
+					fields : [
+						'user.name',
+						'user.email',
+						'user.email_secondary'
+					]
+				});
+				
+				$('#password-form').yavp({
+					//these are all defined in yavp-settings.js 
+					fields : [
+						'user.password',
+						'user.password_confirm'
+					]
+				});								
+			});
+		</script>
+	</body>
+</html>
