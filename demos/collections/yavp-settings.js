@@ -10,7 +10,6 @@ $.fn.yavp.collections = {
 				'required',
 				/^[a-z ]+$/i
 			]
-			
 		},
 		email : { //you will be able to reference it using user.email and so on
 			selector  : '#email',

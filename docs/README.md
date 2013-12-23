@@ -152,7 +152,7 @@ result.success() - it's an equivalent of returning true but can be called ayncho
 
 result.error() - call this if validation fails. Accepts a custom error message that will override any other specified for this element
 
-result.dont_cache() - indicates that the result of validation shouldn't be cached
+result.dontCache() - indicates that the result of validation shouldn't be cached
 
 Example use of "result" object:
 
@@ -255,12 +255,12 @@ The're a few different ways of defining what Yavp is supposed to do with certain
 
 selector   - valid jQuery selector used to match one or more DOM elements. I.e.: '[name="last_name"]', '#period_start' or '.emails'
 
-By default Yavp will append ':visible:enabled' to each selector to make sure that only fields that user can interact with will be validated. If you need to prevent Yavp from doing this, just set "selector_overwrite" to true:
+By default Yavp will append ':visible:enabled' to each selector to make sure that only fields that user can interact with will be validated. If you need to prevent Yavp from doing this, just set "selectorOverwrite" to true:
 
 fields : [
 	{
 		selector           : '[name="age"]',
-		selector_overwrite : true, //so that age will be validated even if hidden or disabled
+		selectorOverwrite : true, //so that age will be validated even if hidden or disabled
 		validators         : [
 			'required'
 		]

@@ -215,7 +215,7 @@ function (result, params) {
 			
 					<li><code>result.error()</code> - call this if validation fails. Accepts a custom error message that will override any other specified for this element</li>
 			
-					<li><code>result.dont_cache()</code> - indicates that the result of validation shouldn't be cached</li>
+					<li><code>result.dontCache()</code> - indicates that the result of validation shouldn't be cached</li>
 				</ul>
 			</p>
 
@@ -263,7 +263,7 @@ function (result, params) {
       zip  = this.val();
    
    //since this zip can be valid if city changes, we can't save validation result in the cache.
-   result.dont_cache();
+   result.dontCache();
    
    $.post({
       //our server side function will validate that this zip is within our city 
@@ -376,12 +376,12 @@ function (result, params) {
 			
 			<p><b>selector</b>   - valid jQuery selector used to match one or more DOM elements, i.e.: <code>[name="last_name"]</code>, <code>#period_start</code> or <code>.emails</code></p>
 
-			<p>By default Yavp will append <code>:visible:enabled</code> to each selector to make sure that only fields that user can interact with will be validated. If you need to prevent Yavp from doing this, just set <code>selector_overwrite</code> to true:</p>
+			<p>By default Yavp will append <code>:visible:enabled</code> to each selector to make sure that only fields that user can interact with will be validated. If you need to prevent Yavp from doing this, just set <code>selectorOverwrite</code> to true:</p>
 
 <pre>fields : [
    {
       selector           : '[name="age"]',
-      selector_overwrite : true, //so that age will be validated even if hidden or disabled
+      selectorOverwrite : true, //so that age will be validated even if hidden or disabled
       validators         : [
          'required'
       ]

@@ -35,6 +35,11 @@
 								<input type="password" class="form-control" id="password_confirm" name="password_confirm">
 							</div>
 							<div class="form-group">
+								<label for="avatar">Avatar:</label>
+								<input type="file" id="avatar" name="avatar">
+							</div>
+							
+							<div class="form-group">
 								<div class="checkbox">
 									<label for="tos">
 										<input type="checkbox" name="tos" id="tos"> I agree to the terms of service.
@@ -177,6 +182,19 @@
 									selector  : 'input[name="password"]'
 								}
 							]
+						},
+						{
+							selector   : '#avatar',
+							validators : [
+								'required',
+								{
+									validator  : 'file',
+									extensions : ['txt', 'jpg']
+								}
+							],
+							messages   : {
+								'required' : 'Please pick a file'	
+							}
 						},
 						{
 							selector  : '#tos',

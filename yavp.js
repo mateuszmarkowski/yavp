@@ -59,17 +59,17 @@
 			
 			$form.attr('novalidate', true); //prevent default browser validation
 	
-			function process_elements() {
+			function processElements() {
 				//if selectorEvents is not empty we need to clear all elements data, because user has used refresh
 				var tmpArray,
 					forceOverwrite = selectorEvents.length > 0 ? true : false;
 				
-				//we have to collect all selectors so we can bind events to them using bind_events()
+				//we have to collect all selectors so we can bind events to them using bindEvents()
 				selectorEvents = [];
 				$formCache     = $();
 				
 				$.each(settings.fields, function (index, field) {
-					var element_settings = {},
+					var elementSettings = {},
 						$elements        = {};
 					
 					//let's check passed field type
@@ -83,28 +83,28 @@
 						}
 						
 						//element settings such as validators, selector has already been defined in some collection
-						element_settings = settings.collections[tmpArray[0]][tmpArray[1]];
+						elementSettings = settings.collections[tmpArray[0]][tmpArray[1]];
 						
 						//if it's an array, user passed only an array of validators and field name should be used as selector
-						if (Array.isArray(element_settings)) {
-							element_settings = {
+						if (Array.isArray(elementSettings)) {
+							elementSettings = {
 								selector  : '[name="'+tmpArray[1]+'"]',
-								validators: element_settings
+								validators: elementSettings
 							};
 						}
 						
 					} else if (typeof field === 'object') {
 						//user passed element settings instead of collection/field name
-						element_settings = field;
+						elementSettings = field;
 					}
 					
 					//user may want to use only the selector he specified without any yavp addons such as :visible:enabled
-					if (element_settings.selector_overwrite !== true) {
-						element_settings.selector += ':visible:enabled';
+					if (elementSettings.selectorOverwrite !== true) {
+						elementSettings.selector += ':visible:enabled';
 					}
 					
 					//we have to find elements matched by this element's selector
-					$elements = $form.find(element_settings.selector);
+					$elements = $form.find(elementSettings.selector);
 					
 					if ($elements.length === 0) {
 						//nothing found
@@ -119,12 +119,12 @@
 						$elements.data('yavp.params', {});
 					}
 					
-					if (typeof element_settings.chain !== 'undefined') {
+					if (typeof elementSettings.chain !== 'undefined') {
 						//yavp.chain contains a selector for elements that should be validated right after this element has been validated
-						$elements.data('yavp.chain', element_settings.chain);
+						$elements.data('yavp.chain', elementSettings.chain);
 					}
 
-					$.each(element_settings.validators, function (index, validator) {
+					$.each(elementSettings.validators, function (index, validator) {
 
 						if (Object.prototype.toString.call(validator) === '[object RegExp]') {
 							//user passed regexp
@@ -139,7 +139,7 @@
 						} else if (typeof validator === 'string') {
 							
 						
-							if (callback = resolve_validator(validator)) {
+							if (callback = resolveValidator(validator)) {
 								$elements.data('yavp.validators').push({
 									name     : validator,
 									callback : callback
@@ -149,7 +149,7 @@
 						} else if (typeof validator === 'object') {
 							
 							//user passed an object that contains a validator's name and some params maybe
-							if (callback = resolve_validator(validator.validator)) {
+							if (callback = resolveValidator(validator.validator)) {
 								$elements.data('yavp.validators').push({
 									name     : validator.validator,
 									callback : callback
@@ -177,10 +177,10 @@
 					});
 					
 					//make sure it won't get overwritten when field is matched by more than one selector
-					$elements.data('yavp.messages', element_settings.messages || {});
+					$elements.data('yavp.messages', elementSettings.messages || {});
 					
-					if (settings.cache !== false || typeof element_settings.cache === 'undefined' ||
-						(typeof element_settings.cache !== 'undefined' && element_settings.cache !== false)) {
+					if (settings.cache !== false || typeof elementSettings.cache === 'undefined' ||
+						(typeof elementSettings.cache !== 'undefined' && elementSettings.cache !== false)) {
 						
 						//user could have used a general selector like a class name that will match elements with different tags
 						$elements.each(function () {
@@ -200,18 +200,18 @@
 					}
 
 					$formCache = $formCache.add($elements);
-					selectorEvents.push(element_settings.selector);
+					selectorEvents.push(elementSettings.selector);
 				});
 				
 				//a shorthand to find validator in settings.validators
-				function resolve_validator(validator) {
+				function resolveValidator(validator) {
 					return validator in settings.validators ? settings.validators[validator] : false;
 				}
 			}
 	
 			//binds events to all elements but form
-			function bind_events() {
-				var namespaced_events = (function (triggers) {
+			function bindEvents() {
+				var namespacedEvents = (function (triggers) {
 					//all our events should be namespaced
 					$.each(triggers, function (index, value) {
 						triggers[index] = value+'.yavp';
@@ -220,11 +220,11 @@
 				})(settings.triggers)
 			
 				//let's unbind all first
-				$form.off(namespaced_events);
+				$form.off(namespacedEvents);
 								
 				//and bind again
 				$form.on(
-					namespaced_events,
+					namespacedEvents,
 					selectorEvents.join(','),
 					settings.debounce ? debounce(validate, settings.debounce) : validate
 				);
@@ -232,14 +232,14 @@
 			
 			function debounce(callback, time) {
 				var timeout,
-					last_called = 0;
+					lastCalled = 0;
 				
 				return function () {
 					var element = this,
 						now     = (new Date).getTime(),
 						args    = arguments;
 									
-					if (timeout && now - time < last_called) {
+					if (timeout && now - time < lastCalled) {
 						clearTimeout(timeout);
 						timeout = null;	
 					}
@@ -251,14 +251,14 @@
 						}, time);
 					}
 					
-					last_called = now;
+					lastCalled = now;
 				};
 			}			
 	
 			function validate() {
 				var promises       = [],
-					main_deferred  = $.Deferred(),
-					$form_or_field = $(this),
+					mainDeferred  = $.Deferred(),
+					$formOrField = $(this),
 					$elements;
 				
 				has_errors = false; //reset it
@@ -276,17 +276,17 @@
 
 				function validates(element) {
 				
-					var async_result,
+					var asyncResultInstance,
 						has_element_errors = false,
 						$element           = $(element),
 						validators         = $element.data('yavp.validators') ? $element.data('yavp.validators').slice() : [], //we need a copy
 						//some validators may drop cache for all other validators, a good example is equals
-						dont_cache         = false,
-						element_deferred   = $.Deferred(); //element deferred
+						dontCache         = false,
+						elementDeferred   = $.Deferred(); //element deferred
 					
-					if ($element.data('yavp.async_result') && $element.data('yavp.async_result').status === 'active') {
+					if ($element.data('yavp.asyncResultInstance') && $element.data('yavp.asyncResultInstance').status === 'active') {
 						//element is still being validated, i.e. AJAX request is in process, we need to make sure that the result will be ignored
-						$element.data('yavp.async_result').revoke();
+						$element.data('yavp.asyncResultInstance').revoke();
 					}
 					
 					if (settings.elementBefore) {
@@ -297,7 +297,7 @@
 						var $this = $(this);
 												
 						//cache the current value, so we won't validate it again
-						if (dont_cache === false && typeof $this.data('yavp.cache-success') === 'object') {
+						if (dontCache === false && typeof $this.data('yavp.cache-success') === 'object') {
 							//also make sure it's not already cached
 							if ($.inArray($this.val(), $this.data('yavp.cache-success')) === -1) {
 								$this.data('yavp.cache-success').push($this.val());
@@ -346,7 +346,7 @@
 							message = message.call($this, $this.data('yavp.params')[type] || {});
 						}
 		
-						if (dont_cache === false && typeof $this.data('yavp.cache-error') === 'object') {
+						if (dontCache === false && typeof $this.data('yavp.cache-error') === 'object') {
 							//we need to cache error type along with the message
 							$this.data('yavp.cache-error')[$this.val()] =  {
 								type    : type,
@@ -368,14 +368,14 @@
 							//called when user triggers validation before the previous one was completed
 							revoke    : function () {
 								this.status = 'inactive';
-								element_deferred.reject();
+								elementDeferred.reject();
 								return this;
 							},
 						
 							//it will notify the main controller that because of used validator (like equals), we can't cache result
-							dont_cache: function () {
-								//dont_cache is also a variable included in the closure
-								dont_cache = true;
+							dontCache: function () {
+								//dontCache is also a variable included in the closure
+								dontCache = true;
 							},
 							//if we pass true as stop, we won't process further validatiors and  weill fire apply_success immedietaly 
 							success : function (stop) {
@@ -388,7 +388,7 @@
 								this.status = 'inactive';
 
 								if (stop) {
-									element_deferred.resolve();
+									elementDeferred.resolve();
 								} else {
 									deferred.resolve();
 								}
@@ -410,7 +410,7 @@
 					}
 					
 					//we can call success function only after all validators passed
-					element_deferred.done(function () {
+					elementDeferred.done(function () {
 						!has_element_errors &&
 							apply_success.call($element);
 					}).fail(function () {
@@ -428,8 +428,8 @@
 						var error = $element.data('yavp.cache-error')[$element.val()];
 						
 						//create new AsyncResult and immeditately resolve error
-						(new AsyncResult($element, element_deferred, error.type)).error(error.message);
-						return element_deferred.promise();
+						(new AsyncResult($element, elementDeferred, error.type)).error(error.message);
+						return elementDeferred.promise();
 							
 					}					
 					
@@ -437,15 +437,15 @@
 					if (typeof $element.data('yavp.cache-success') == 'object' &&
 						$.inArray($element.val(), $element.data('yavp.cache-success')) > -1) {
 
-						(new AsyncResult($element, element_deferred)).success();
-						return element_deferred.promise();
+						(new AsyncResult($element, elementDeferred)).success();
+						return elementDeferred.promise();
 							
 					}		
 
 					//we start checking next validator only if previous has been successful
 					(function run_validator(validators) {
 						if (!validators.length) {
-							element_deferred.resolve();
+							elementDeferred.resolve();
 							return;
 						}
 					
@@ -456,47 +456,47 @@
 						validator_deferred.done(function () {
 							run_validator(validators);
 						}).fail(function () {
-							element_deferred.resolve();
+							elementDeferred.resolve();
 						});
 						
 						//get first remaining validator and run it
 						validator    = validators.shift();
 						
-						//create async_result
-						async_result = AsyncResult($element, validator_deferred, validator.name);
+						//create asyncResultInstance
+						asyncResultInstance = AsyncResult($element, validator_deferred, validator.name);
 						
 						//we need to store it, so to be able to revoke if user triggers validation again
-						$element.data('yavp.async_result', async_result);
+						$element.data('yavp.asyncResultInstance', asyncResultInstance);
 						
 						//call validator in $element's context and pass its params
 						result       = validator.callback.call(
 							$element,
-							async_result,
+							asyncResultInstance,
 							$element.data('yavp.params')[validator.name] || {}
 							//validator.name in $element.data('yavp.params') ? $element.data('yavp.params')[validator.name] : {}
 						);
 
 						//if user returns boolean, we can immedietaly handle result
 						if (typeof result === 'boolean') {
-							result === true ? async_result.success() : async_result.error();
+							result === true ? asyncResultInstance.success() : asyncResultInstance.error();
 						}
 							
 					})(validators);
 				
 					//only expose public interface
-					return element_deferred.promise();
+					return elementDeferred.promise();
 				}
 								
-				if ($form_or_field.prop('tagName').toLowerCase() === 'form') {
+				if ($formOrField.prop('tagName').toLowerCase() === 'form') {
 					//we are validating all fields like on submit
 					$elements = $formCache;
 				} else {
 					//we are validating a single element
-					$elements = $form_or_field;
+					$elements = $formOrField;
 					
 					//let's check if there're any other elements chained. If so, let's validate them as well
-					if (typeof $form_or_field.data('yavp.chain') !== 'undefined') {
-						$elements = $elements.add($form.find($form_or_field.data('yavp.chain')));
+					if (typeof $formOrField.data('yavp.chain') !== 'undefined') {
+						$elements = $elements.add($form.find($formOrField.data('yavp.chain')));
 					}
 				}
 
@@ -509,19 +509,19 @@
 				if (promises.length) {
 					//we have to pass an array of promises, so we use apply function
 					$.when.apply(null, promises).done(function () {
-						main_deferred.resolve();
+						mainDeferred.resolve();
 					});
 				} else {
-					main_deferred.resolve();
+					mainDeferred.resolve();
 				}
 	
-				return main_deferred.promise();
+				return mainDeferred.promise();
 			}
 					
 			$form.submit(function (e) {
-				var form        = this,
+				var form           = this,
 					//we have to prevent the default's event, because we are async. That's why we give user a simulated event
-					simulated_e = $.Event('submit', {
+					simulatedEvent = $.Event('submit', {
 						target : form
 					});
 				
@@ -533,14 +533,14 @@
 					if (has_errors) {
 						//form has validation errors, we have to check if there's an error callback specified
 						if (typeof settings.error == 'function') {
-							settings.error.call(form, simulated_e);
+							settings.error.call(form, simulatedEvent);
 						}
 					} else {
 						//if user explicitly returns false, form won't be submitted
 						_continue  = typeof settings.success == 'function' ?
-							settings.success.call(form, simulated_e) !== false : true;
+							settings.success.call(form, simulatedEvent) !== false : true;
 							
-						if (_continue && !simulated_e.isDefaultPrevented()) {
+						if (_continue && !simulatedEvent.isDefaultPrevented()) {
 							form.submit(); //skip jQuery interface
 						}
 					}
@@ -549,15 +549,15 @@
 				
 			});
 					
-			process_elements();
-			bind_events();
+			processElements();
+			bindEvents();
 					
 			//public methods
 			$form.data('yavp', {
 				//use that method when you're adding/removing fields from the form to flush yavp cache
 				refresh : function () {
-					process_elements();
-					bind_events();
+					processElements();
+					bindEvents();
 				}
 				
 			});
@@ -623,7 +623,7 @@
 		},
 		'equals'     : function (result, params) {
 			//we don't want to cache elements that use this validator, because they depend on other fields that may be changed
-			result.dont_cache();
+			result.dontCache();
 						
 			return this.val() == this
 				.parents('form:first')
@@ -635,7 +635,7 @@
 		},
 		'checked'    : function (result) {
 			//no point in caching it
-			result.dont_cache();
+			result.dontCache();
 					
 			return this.is(':checked');
 		},
