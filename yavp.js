@@ -32,8 +32,9 @@
 		//if yavp has already been assigned to this element
 		if (this.data('yavp') && typeof args[0] === 'string') {
 			//user can pass string to call a function
-			this.data('yavp')[args[0]]();
-			return this;
+			var returnValue = this.data('yavp')[args[0]]();
+						
+			return typeof returnValue === 'undefined' ? this : returnValue;
 		} else if (this.data('yavp')) {
 			//or pass nothing to get the public interface
 			return this.data('yavp');
@@ -258,7 +259,7 @@
 			function validate() {
 				var promises       = [],
 					mainDeferred  = $.Deferred(),
-					$formOrField = $(this),
+					$formOrField = this instanceof $ ? this : $(this),
 					$elements;
 				
 				has_errors = false; //reset it
@@ -414,7 +415,7 @@
 						!hasElementErrors &&
 							applySuccess.call($element);
 					}).fail(function () {
-						console.log('element deferred fail');
+						//console.log('element deferred fail');
 					}).always(function () {
 						if (settings.elementAfter) {
 							settings.elementAfter.call($element);
@@ -528,7 +529,7 @@
 				e.preventDefault();
 				
 				//validate.call(form) will return a promise
-				$.when(validate.call(form)).done(function (errors) {
+				$.when(validate.call(form)).done(function () {
 
 					if (has_errors) {
 						//form has validation errors, we have to check if there's an error callback specified
@@ -555,9 +556,22 @@
 			//public methods
 			$form.data('yavp', {
 				//use that method when you're adding/removing fields from the form to flush yavp cache
-				refresh : function () {
+				refresh  : function () {
 					processElements();
 					bindEvents();
+				},
+				validates: function () {
+					var deferred = $.Deferred();
+					
+					validate.call($form).done(function () {
+						if (has_errors) {
+							deferred.reject();
+						} else {
+							deferred.resolve();
+						}
+					});
+				
+					return deferred.promise();	
 				}
 				
 			});
