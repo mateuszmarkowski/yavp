@@ -21,13 +21,13 @@
 				collections   : Yavp.collections    || {},
 				fields        : {}
 			},
-			$form_cache,
+			$formCache,
 			$form,
 			$element,
 			has_errors,
 			_continue, //needs underscore, because continue is a reserved keyword
-			anonymous_validator_index, //used to generate unique names for anonymous validators
-			selector_events = []; //WE NEED TO CHANGE ITS NAME, IT'S CONFUSING
+			anonymousValidatorIndex, //used to generate unique names for anonymous validators
+			selectorEvents = []; //WE NEED TO CHANGE ITS NAME, IT'S CONFUSING
 			
 		//if yavp has already been assigned to this element
 		if (this.data('yavp') && typeof args[0] === 'string') {
@@ -46,7 +46,7 @@
 			$form                     = $(this);
 			has_errors                = false;
 			_continue                 = false;
-			anonymous_validator_index = 100;
+			anonymousValidatorIndex = 100;
 			
 			if (typeof args[0] == 'function') {
 				settings = $.extend(true, {}, settings, {
@@ -60,13 +60,13 @@
 			$form.attr('novalidate', true); //prevent default browser validation
 	
 			function process_elements() {
-				//if selector_events is not empty we need to clear all elements data, because user has used refresh
+				//if selectorEvents is not empty we need to clear all elements data, because user has used refresh
 				var tmpArray,
-					force_overwrite = selector_events.length > 0 ? true : false;
+					forceOverwrite = selectorEvents.length > 0 ? true : false;
 				
 				//we have to collect all selectors so we can bind events to them using bind_events()
-				selector_events = [];
-				$form_cache     = $();
+				selectorEvents = [];
+				$formCache     = $();
 				
 				$.each(settings.fields, function (index, field) {
 					var element_settings = {},
@@ -111,11 +111,11 @@
 						return;
 					}
 
-					if (force_overwrite || typeof $elements.data('yavp.validators') === 'undefined') {
+					if (forceOverwrite || typeof $elements.data('yavp.validators') === 'undefined') {
 						$elements.data('yavp.validators', []);
 					}
 					
-					if (force_overwrite || typeof $elements.data('yavp.params') === 'undefined') {
+					if (forceOverwrite || typeof $elements.data('yavp.params') === 'undefined') {
 						$elements.data('yavp.params', {});
 					}
 					
@@ -169,7 +169,7 @@
 							
 						} else if (typeof validator === 'function') {
 							$elements.data('yavp.validators').push({
-								name     : 'anonymous-validator-' + (++anonymous_validator_index),
+								name     : 'anonymous-validator-' + (++anonymousValidatorIndex),
 								callback : validator
 							});
 						}
@@ -199,8 +199,8 @@
 						});
 					}
 
-					$form_cache = $form_cache.add($elements);
-					selector_events.push(element_settings.selector);
+					$formCache = $formCache.add($elements);
+					selectorEvents.push(element_settings.selector);
 				});
 				
 				//a shorthand to find validator in settings.validators
@@ -225,7 +225,7 @@
 				//and bind again
 				$form.on(
 					namespaced_events,
-					selector_events.join(','),
+					selectorEvents.join(','),
 					settings.debounce ? debounce(validate, settings.debounce) : validate
 				);
 			}
@@ -489,7 +489,7 @@
 								
 				if ($form_or_field.prop('tagName').toLowerCase() === 'form') {
 					//we are validating all fields like on submit
-					$elements = $form_cache;
+					$elements = $formCache;
 				} else {
 					//we are validating a single element
 					$elements = $form_or_field;
@@ -650,7 +650,7 @@
 						
 			if (parts.length === 0) {
 				return false; //chosen file has no extension
-			} else if ($.inArray(parts.pop(), allowedExtensions) > -1) {
+			} else if ($.inArray(parts.pop().toLowerCase(), allowedExtensions) > -1) {
 				return true;
 			} else {
 				return false;
