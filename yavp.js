@@ -284,9 +284,9 @@
 						dontCache         = false,
 						elementDeferred   = $.Deferred(); //element deferred
 					
-					if ($element.data('yavp.asyncResultInstance') && $element.data('yavp.asyncResultInstance').status === 'active') {
+					if ($element.data('yavp.async-result-instance') && $element.data('yavp.async-result-instance').status === 'active') {
 						//element is still being validated, i.e. AJAX request is in process, we need to make sure that the result will be ignored
-						$element.data('yavp.asyncResultInstance').revoke();
+						$element.data('yavp.async-result-instance').revoke();
 					}
 					
 					if (settings.elementBefore) {
@@ -466,7 +466,7 @@
 						asyncResultInstance = AsyncResult($element, validator_deferred, validator.name);
 						
 						//we need to store it, so to be able to revoke if user triggers validation again
-						$element.data('yavp.asyncResultInstance', asyncResultInstance);
+						$element.data('yavp.async-result-instance', asyncResultInstance);
 						
 						//call validator in $element's context and pass its params
 						result       = validator.callback.call(
