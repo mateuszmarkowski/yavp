@@ -25,11 +25,9 @@
 			$form,
 			$element,
 			has_errors,
-			_continue,
-			//used to generate unique names for anonymous validators
-			anonymous_validator_index,
-			//WE NEED TO CHANGE ITS NAME, IT'S CONFUSING
-			selector_events = [];
+			_continue, //needs underscore, because continue is a reserved keyword
+			anonymous_validator_index, //used to generate unique names for anonymous validators
+			selector_events = []; //WE NEED TO CHANGE ITS NAME, IT'S CONFUSING
 			
 		//if yavp has already been assigned to this element
 		if (this.data('yavp') && typeof args[0] === 'string') {
