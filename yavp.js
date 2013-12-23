@@ -643,6 +643,18 @@
 			var val = this.val();
 			//we consider reasonable years as those between 1900 and 2100
 			return /^[0-9]{4}$/.test(val) && val >= 1900 && val <= 2100;
+		},
+		'file'       : function (result, params) {
+			var allowedExtensions = Array.isArray(params.extensions) ? params.extensions : [params.extensions],
+				parts             = this.val().split('.');
+						
+			if (parts.length === 0) {
+				return false; //chosen file has no extension
+			} else if ($.inArray(parts.pop(), allowedExtensions) > -1) {
+				return true;
+			} else {
+				return false;
+			}
 		}
 	};
 	
@@ -659,7 +671,12 @@
 			} else {
 				return 'Please pick a number smaller than ' + params.max;
 			}
-		}			
+		},
+		'file'      : function (params) {
+			var allowedExtensions = Array.isArray(params.extensions) ? params.extensions : [params.extensions];
+		
+			return 'Invalid file extension! Allowed file extensions include: '+allowedExtensions.join(', ');
+		}	
 	};
 	
 	
