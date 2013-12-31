@@ -24,7 +24,7 @@
 			$formCache,
 			$form,
 			$element,
-			has_errors,
+			errorList,
 			_continue, //needs underscore, because continue is a reserved keyword
 			anonymousValidatorIndex, //used to generate unique names for anonymous validators
 			selectorEvents = []; //WE NEED TO CHANGE ITS NAME, IT'S CONFUSING
@@ -48,7 +48,7 @@
 			//we need an empty jQuery collection
 			//form currently being processed 
 			$form                   = $(this);
-			has_errors              = [];
+			errorList              = [];
 			_continue               = false;
 			anonymousValidatorIndex = 100;
 			
@@ -341,7 +341,7 @@
 						};
 					}
 					
-					has_errors.push({
+					errorList.push({
 						element: $this,
 						type   : type,
 						message: message
@@ -491,7 +491,7 @@
 					$formOrField = this instanceof $ ? this : $(this),
 					$elements;
 				
-				has_errors = []; //reset it
+				errorList = []; //reset it
 								
 				//run before callback if specified
 				if (typeof settings.before == 'function') {
@@ -570,7 +570,7 @@
 				}).fail(function () {
 					//form has validation errors, we have to check if there's an error callback specified
 					if (typeof settings.error == 'function') {
-						settings.error.call(form, has_errors);
+						settings.error.call(form, errorList);
 					}
 				});
 				
