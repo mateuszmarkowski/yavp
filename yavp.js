@@ -257,8 +257,8 @@
 			}			
 	
 			function validate() {
-				var promises       = [],
-					mainDeferred  = $.Deferred(),
+				var promises     = [],
+					mainDeferred = $.Deferred(),
 					$formOrField = this instanceof $ ? this : $(this),
 					$elements;
 				
@@ -270,7 +270,7 @@
 				}	
 				
 				if (typeof settings.after == 'function') {
-					main.deferred.always(function () {				
+					mainDeferred.always(function () {		
 						settings.after.call($form);
 					});
 				}
@@ -361,6 +361,7 @@
 
 					}
 					
+					//a factory
 					function AsyncResult(context, deferred, validatorName) {
 					
 						//A simple interface for handling validation status 		
@@ -369,6 +370,7 @@
 							//called when user triggers validation before the previous one was completed
 							revoke    : function () {
 								this.status = 'inactive';
+	
 								elementDeferred.reject();
 								return this;
 							},
@@ -455,8 +457,10 @@
 							validatorDeferred = $.Deferred();
 						
 						validatorDeferred.done(function () {
+							//let's run the next validator once this has completed
 							runValidator(validators);
 						}).fail(function () {
+							console.log('Validator deferred fails, resolving elementDeferred', $element);
 							elementDeferred.resolve();
 						});
 						
@@ -483,7 +487,7 @@
 						}
 							
 					})(validators);
-				
+								
 					//only expose public interface
 					return elementDeferred.promise();
 				}
@@ -506,15 +510,24 @@
 					promises.push(validates(element));
 				});
 				
+				
+				
 				//if there're promises, we have to wait until all have been resolved
 				if (promises.length) {
 					//we have to pass an array of promises, so we use apply function
 					$.when.apply(null, promises).done(function () {
+						console.log('all resolved');
 						mainDeferred.resolve();
+					}).fail(function () {
+						$.each(promises, function (i, e) {
+							console.log(e.state());
+						});
+						console.log('some failed')
 					});
+					
 				} else {
 					mainDeferred.resolve();
-				}
+				}	
 	
 				return mainDeferred.promise();
 			}
@@ -562,15 +575,16 @@
 				},
 				validates: function () {
 					var deferred = $.Deferred();
-					
+						
 					validate.call($form).done(function () {
+					
 						if (has_errors) {
 							deferred.reject();
 						} else {
 							deferred.resolve();
 						}
 					});
-				
+
 					return deferred.promise();	
 				}
 				
