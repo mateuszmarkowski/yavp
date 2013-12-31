@@ -32,12 +32,15 @@
 		//if yavp has already been assigned to this element
 		if (this.data('yavp') && typeof args[0] === 'string') {
 			//user can pass string to call a function
-			var returnValue = this.data('yavp')[args[0]]();
+			var returnValue = this.data('yavp')[args[0]].call(this);
 						
 			return typeof returnValue === 'undefined' ? this : returnValue;
 		} else if (this.data('yavp')) {
 			//or pass nothing to get the public interface
 			return this.data('yavp');
+		} else if (typeof args[0] === 'string' && args[0] === 'validates' && this.data('yavp.parent')) {
+			//user called yavp for one of form elements, so we have to find yavp object for its parent form and call validates in elment's context
+			return this.data('yavp.parent').data('yavp').validates.call(this);
 		}
 		
 		//jquery selector that triggers yavp may return more than one element
@@ -124,6 +127,9 @@
 						//yavp.chain contains a selector for elements that should be validated right after this element has been validated
 						$elements.data('yavp.chain', elementSettings.chain);
 					}
+
+					//each element will have a handy reference to its form
+					$elements.data('yavp.parent', $form);
 
 					$.each(elementSettings.validators, function (index, validator) {
 
@@ -578,7 +584,7 @@
 					bindEvents();
 				},
 				validates: function () {						
-					return validate.call($form);	
+					return validate.call(this);	
 				}
 				
 			});
