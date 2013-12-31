@@ -39,7 +39,7 @@
 			//or pass nothing to get the public interface
 			return this.data('yavp');
 		} else if (typeof args[0] === 'string' && args[0] === 'validates' && this.data('yavp.parent')) {
-			//user called yavp for one of form elements, so we have to find yavp object for its parent form and call validates in elment's context
+			//user called yavp for one of form elements, so we have to find yavp object of its parent form and call validates in elment's context
 			return this.data('yavp.parent').data('yavp').validates.call(this);
 		}
 		
@@ -48,7 +48,7 @@
 			//we need an empty jQuery collection
 			//form currently being processed 
 			$form                   = $(this);
-			has_errors              = false;
+			has_errors              = [];
 			_continue               = false;
 			anonymousValidatorIndex = 100;
 			
@@ -145,7 +145,6 @@
 							};
 						} else if (typeof validator === 'string') {
 							
-						
 							if (callback = resolveValidator(validator)) {
 								$elements.data('yavp.validators').push({
 									name     : validator,
@@ -303,7 +302,7 @@
 					var type,
 						$this = this;
 					
-					has_errors = hasElementErrors  = true;
+					hasElementErrors  = true;
 					
 					if (validatorName && message) {
 						//we have both explicitely specified
@@ -341,6 +340,12 @@
 							message : message
 						};
 					}
+					
+					has_errors.push({
+						element: $this,
+						type   : type,
+						message: message
+					});
 					
 					if (settings.elementError) {
 						settings.elementError.call($this, message, type);
@@ -486,7 +491,7 @@
 					$formOrField = this instanceof $ ? this : $(this),
 					$elements;
 				
-				has_errors = false; //reset it
+				has_errors = []; //reset it
 								
 				//run before callback if specified
 				if (typeof settings.before == 'function') {
@@ -554,21 +559,19 @@
 				//validate.call(form) will return a promise
 				$.when(validate.call(form)).done(function () {
 
-					if (has_errors) {
-						//form has validation errors, we have to check if there's an error callback specified
-						if (typeof settings.error == 'function') {
-							settings.error.call(form, simulatedEvent);
-						}
-					} else {
-						//if user explicitly returns false, form won't be submitted
-						_continue  = typeof settings.success == 'function' ?
-							settings.success.call(form, simulatedEvent) !== false : true;
-							
-						if (_continue && !simulatedEvent.isDefaultPrevented()) {
-							form.submit(); //skip jQuery interface
-						}
+					//if user explicitly returns false, form won't be submitted
+					_continue  = typeof settings.success == 'function' ?
+						settings.success.call(form, simulatedEvent) !== false : true;
+						
+					if (_continue && !simulatedEvent.isDefaultPrevented()) {
+						form.submit(); //skip jQuery interface
 					}
 
+				}).fail(function () {
+					//form has validation errors, we have to check if there's an error callback specified
+					if (typeof settings.error == 'function') {
+						settings.error.call(form, has_errors);
+					}
 				});
 				
 			});
