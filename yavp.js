@@ -406,7 +406,8 @@
 								
 								this.status = 'inactive';
 								applyError.call(context, validatorName, message);
-								deferred.reject();
+								//deferred.reject();
+								elementDeferred.reject();
 								return this;
 							}
 						}
@@ -460,8 +461,8 @@
 							//let's run the next validator once this has completed
 							runValidator(validators);
 						}).fail(function () {
-							console.log('Validator deferred fails, resolving elementDeferred', $element);
-							elementDeferred.resolve();
+							//console.log('Validator deferred fails, resolving elementDeferred', $element);
+							//elementDeferred.resolve();
 						});
 						
 						//get first remaining validator and run it
@@ -516,13 +517,16 @@
 				if (promises.length) {
 					//we have to pass an array of promises, so we use apply function
 					$.when.apply(null, promises).done(function () {
-						console.log('all resolved');
+						//console.log('all resolved');
 						mainDeferred.resolve();
 					}).fail(function () {
+						mainDeferred.reject();
+/*
 						$.each(promises, function (i, e) {
 							console.log(e.state());
 						});
 						console.log('some failed')
+*/
 					});
 					
 				} else {
@@ -573,19 +577,8 @@
 					processElements();
 					bindEvents();
 				},
-				validates: function () {
-					var deferred = $.Deferred();
-						
-					validate.call($form).done(function () {
-					
-						if (has_errors) {
-							deferred.reject();
-						} else {
-							deferred.resolve();
-						}
-					});
-
-					return deferred.promise();	
+				validates: function () {						
+					return validate.call($form);	
 				}
 				
 			});
