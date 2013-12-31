@@ -44,9 +44,9 @@
 		this.each(function () {
 			//we need an empty jQuery collection
 			//form currently being processed 
-			$form                     = $(this);
-			has_errors                = false;
-			_continue                 = false;
+			$form                   = $(this);
+			has_errors              = false;
+			_continue               = false;
 			anonymousValidatorIndex = 100;
 			
 			if (typeof args[0] == 'function') {
@@ -71,7 +71,7 @@
 				
 				$.each(settings.fields, function (index, field) {
 					var elementSettings = {},
-						$elements        = {};
+						$elements       = {};
 					
 					//let's check passed field type
 					if (typeof field === 'string') {
