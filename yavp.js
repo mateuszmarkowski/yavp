@@ -256,6 +256,224 @@
 				};
 			}			
 	
+			function validates(element) {
+				
+				var asyncResultInstance,
+					hasElementErrors = false,
+					$element           = $(element),
+					validators         = $element.data('yavp.validators') ? $element.data('yavp.validators').slice() : [], //we need a copy
+					//some validators may drop cache for all other validators, a good example is equals
+					dontCache         = false,
+					elementDeferred   = $.Deferred(); //element deferred
+				
+				if ($element.data('yavp.async-result-instance') && $element.data('yavp.async-result-instance').status === 'active') {
+					//element is still being validated, i.e. AJAX request is in process, we need to make sure that the result will be ignored
+					$element.data('yavp.async-result-instance').revoke();
+				}
+				
+				if (settings.elementBefore) {
+					settings.elementBefore.call($element);
+				}
+							
+				function applySuccess() {
+					var $this = $(this);
+											
+					//cache the current value, so we won't validate it again
+					if (dontCache === false && typeof $this.data('yavp.cache-success') === 'object') {
+						//also make sure it's not already cached
+						if ($.inArray($this.val(), $this.data('yavp.cache-success')) === -1) {
+							$this.data('yavp.cache-success').push($this.val());
+						}
+					}
+						
+					if (settings.elementSuccess) {
+						settings.elementSuccess.call($this);
+					}
+
+				}
+				
+				function applyError(validatorName, message) {
+					//let's determine if we have a message of if we have to find one
+					var type,
+						$this = this;
+					
+					has_errors = hasElementErrors  = true;
+					
+					if (validatorName && message) {
+						//we have both explicitely specified
+						type    = validatorName;
+						message = message;
+					} else if (this.data('yavp.messages') && validatorName in $this.data('yavp.messages')) {
+						//we just know validatorName and we first check in its element's messages
+						type     = validatorName;
+						message  = $this.data('yavp.messages')[validatorName];
+					} else if (validatorName in settings.messages) {
+						//now let's check it if there's a message for it in global settings
+						type    = validatorName;
+						message = settings.messages[validatorName]; 
+					} else if (/^anonymous-validator-[0-9]+$/.test(validatorName)) {
+						//let's check if it's a anonymous validator
+						type    = 'format';
+						message = $this.data('yavp.messages')[type] || settings.messages[type];
+					} else if (validatorName in settings.validators) {
+						type    = 'format';
+						message = settings.messages[type];
+					} else {
+						//fallback
+						type    = 'format';
+						message = settings.messages[type];
+					}
+	
+					if (typeof message == 'function') {
+						message = message.call($this, $this.data('yavp.params')[type] || {});
+					}
+	
+					if (dontCache === false && typeof $this.data('yavp.cache-error') === 'object') {
+						//we need to cache error type along with the message
+						$this.data('yavp.cache-error')[$this.val()] =  {
+							type    : type,
+							message : message
+						};
+					}
+					
+					if (settings.elementError) {
+						settings.elementError.call($this, message, type);
+					}
+
+				}
+				
+				//a factory
+				function AsyncResult(context, deferred, validatorName) {
+				
+					//A simple interface for handling validation status 		
+					return {
+						status    : 'active',
+						//called when user triggers validation before the previous one was completed
+						revoke    : function () {
+							this.status = 'inactive';
+
+							elementDeferred.reject();
+							return this;
+						},
+					
+						//it will notify the main controller that because of used validator (like equals), we can't cache result
+						dontCache: function () {
+							//dontCache is also a variable included in the closure
+							dontCache = true;
+						},
+						//if we pass true as stop, we won't process further validatiors and  weill fire applySuccess immedietaly 
+						success : function (stop) {
+							var stop = typeof stop === 'undefined' ? false : stop;
+						
+							if (this.status === 'inactive') {
+								return this;
+							}
+							
+							this.status = 'inactive';
+
+							if (stop) {
+								elementDeferred.resolve();
+							} else {
+								deferred.resolve();
+							}
+							
+							return this;
+						},
+						
+						error   : function (message) {
+							if (this.status === 'inactive') {
+								return this;
+							}
+							
+							this.status = 'inactive';
+							applyError.call(context, validatorName, message);
+							//deferred.reject();
+							elementDeferred.reject();
+							return this;
+						}
+					}
+				}
+				
+				//we can call success function only after all validators passed
+				elementDeferred.done(function () {
+					!hasElementErrors &&
+						applySuccess.call($element);
+				}).fail(function () {
+					//console.log('element deferred fail');
+				}).always(function () {
+					if (settings.elementAfter) {
+						settings.elementAfter.call($element);
+					}
+				});	
+				
+				//let's check with the error cache first
+				if (typeof $element.data('yavp.cache-error') == 'object' &&
+					$element.val() in $element.data('yavp.cache-error')) {
+					
+					var error = $element.data('yavp.cache-error')[$element.val()];
+					
+					//create new AsyncResult and immeditately resolve error
+					(new AsyncResult($element, elementDeferred, error.type)).error(error.message);
+					return elementDeferred.promise();
+						
+				}					
+				
+				//let's check with the success cache next
+				if (typeof $element.data('yavp.cache-success') == 'object' &&
+					$.inArray($element.val(), $element.data('yavp.cache-success')) > -1) {
+
+					(new AsyncResult($element, elementDeferred)).success();
+					return elementDeferred.promise();
+						
+				}		
+
+				//we start checking next validator only if previous has been successful
+				(function runValidator(validators) {
+					if (!validators.length) {
+						elementDeferred.resolve();
+						return;
+					}
+				
+					var validator,
+						result,
+						validatorDeferred = $.Deferred();
+					
+					validatorDeferred.done(function () {
+						//let's run the next validator once this has completed
+						runValidator(validators);
+					}).fail(function () {
+						//console.log('Validator deferred fails, resolving elementDeferred', $element);
+						//elementDeferred.resolve();
+					});
+					
+					//get first remaining validator and run it
+					validator    = validators.shift();
+					
+					//create asyncResultInstance
+					asyncResultInstance = AsyncResult($element, validatorDeferred, validator.name);
+					
+					//we need to store it, so to be able to revoke if user triggers validation again
+					$element.data('yavp.async-result-instance', asyncResultInstance);
+					
+					//call validator in $element's context and pass its params
+					result       = validator.callback.call(
+						$element,
+						asyncResultInstance,
+						$element.data('yavp.params')[validator.name] || {}
+						//validator.name in $element.data('yavp.params') ? $element.data('yavp.params')[validator.name] : {}
+					);
+
+					//if user returns boolean, we can immedietaly handle result
+					if (typeof result === 'boolean') {
+						result === true ? asyncResultInstance.success() : asyncResultInstance.error();
+					}
+						
+				})(validators);
+							
+				//only expose public interface
+				return elementDeferred.promise();
+			}	
+	
 			function validate() {
 				var promises     = [],
 					mainDeferred = $.Deferred(),
@@ -273,224 +491,6 @@
 					mainDeferred.always(function () {		
 						settings.after.call($form);
 					});
-				}
-
-				function validates(element) {
-				
-					var asyncResultInstance,
-						hasElementErrors = false,
-						$element           = $(element),
-						validators         = $element.data('yavp.validators') ? $element.data('yavp.validators').slice() : [], //we need a copy
-						//some validators may drop cache for all other validators, a good example is equals
-						dontCache         = false,
-						elementDeferred   = $.Deferred(); //element deferred
-					
-					if ($element.data('yavp.async-result-instance') && $element.data('yavp.async-result-instance').status === 'active') {
-						//element is still being validated, i.e. AJAX request is in process, we need to make sure that the result will be ignored
-						$element.data('yavp.async-result-instance').revoke();
-					}
-					
-					if (settings.elementBefore) {
-						settings.elementBefore.call($element);
-					}
-								
-					function applySuccess() {
-						var $this = $(this);
-												
-						//cache the current value, so we won't validate it again
-						if (dontCache === false && typeof $this.data('yavp.cache-success') === 'object') {
-							//also make sure it's not already cached
-							if ($.inArray($this.val(), $this.data('yavp.cache-success')) === -1) {
-								$this.data('yavp.cache-success').push($this.val());
-							}
-						}
-							
-						if (settings.elementSuccess) {
-							settings.elementSuccess.call($this);
-						}
-
-					}
-					
-					function applyError(validatorName, message) {
-						//let's determine if we have a message of if we have to find one
-						var type,
-							$this = this;
-						
-						has_errors = hasElementErrors  = true;
-						
-						if (validatorName && message) {
-							//we have both explicitely specified
-							type    = validatorName;
-							message = message;
-						} else if (this.data('yavp.messages') && validatorName in $this.data('yavp.messages')) {
-							//we just know validatorName and we first check in its element's messages
-							type     = validatorName;
-							message  = $this.data('yavp.messages')[validatorName];
-						} else if (validatorName in settings.messages) {
-							//now let's check it if there's a message for it in global settings
-							type    = validatorName;
-							message = settings.messages[validatorName]; 
-						} else if (/^anonymous-validator-[0-9]+$/.test(validatorName)) {
-							//let's check if it's a anonymous validator
-							type    = 'format';
-							message = $this.data('yavp.messages')[type] || settings.messages[type];
-						} else if (validatorName in settings.validators) {
-							type    = 'format';
-							message = settings.messages[type];
-						} else {
-							//fallback
-							type    = 'format';
-							message = settings.messages[type];
-						}
-		
-						if (typeof message == 'function') {
-							message = message.call($this, $this.data('yavp.params')[type] || {});
-						}
-		
-						if (dontCache === false && typeof $this.data('yavp.cache-error') === 'object') {
-							//we need to cache error type along with the message
-							$this.data('yavp.cache-error')[$this.val()] =  {
-								type    : type,
-								message : message
-							};
-						}
-						
-						if (settings.elementError) {
-							settings.elementError.call($this, message, type);
-						}
-
-					}
-					
-					//a factory
-					function AsyncResult(context, deferred, validatorName) {
-					
-						//A simple interface for handling validation status 		
-						return {
-							status    : 'active',
-							//called when user triggers validation before the previous one was completed
-							revoke    : function () {
-								this.status = 'inactive';
-	
-								elementDeferred.reject();
-								return this;
-							},
-						
-							//it will notify the main controller that because of used validator (like equals), we can't cache result
-							dontCache: function () {
-								//dontCache is also a variable included in the closure
-								dontCache = true;
-							},
-							//if we pass true as stop, we won't process further validatiors and  weill fire applySuccess immedietaly 
-							success : function (stop) {
-								var stop = typeof stop === 'undefined' ? false : stop;
-							
-								if (this.status === 'inactive') {
-									return this;
-								}
-								
-								this.status = 'inactive';
-
-								if (stop) {
-									elementDeferred.resolve();
-								} else {
-									deferred.resolve();
-								}
-								
-								return this;
-							},
-							
-							error   : function (message) {
-								if (this.status === 'inactive') {
-									return this;
-								}
-								
-								this.status = 'inactive';
-								applyError.call(context, validatorName, message);
-								//deferred.reject();
-								elementDeferred.reject();
-								return this;
-							}
-						}
-					}
-					
-					//we can call success function only after all validators passed
-					elementDeferred.done(function () {
-						!hasElementErrors &&
-							applySuccess.call($element);
-					}).fail(function () {
-						//console.log('element deferred fail');
-					}).always(function () {
-						if (settings.elementAfter) {
-							settings.elementAfter.call($element);
-						}
-					});	
-					
-					//let's check with the error cache first
-					if (typeof $element.data('yavp.cache-error') == 'object' &&
-						$element.val() in $element.data('yavp.cache-error')) {
-						
-						var error = $element.data('yavp.cache-error')[$element.val()];
-						
-						//create new AsyncResult and immeditately resolve error
-						(new AsyncResult($element, elementDeferred, error.type)).error(error.message);
-						return elementDeferred.promise();
-							
-					}					
-					
-					//let's check with the success cache next
-					if (typeof $element.data('yavp.cache-success') == 'object' &&
-						$.inArray($element.val(), $element.data('yavp.cache-success')) > -1) {
-
-						(new AsyncResult($element, elementDeferred)).success();
-						return elementDeferred.promise();
-							
-					}		
-
-					//we start checking next validator only if previous has been successful
-					(function runValidator(validators) {
-						if (!validators.length) {
-							elementDeferred.resolve();
-							return;
-						}
-					
-						var validator,
-							result,
-							validatorDeferred = $.Deferred();
-						
-						validatorDeferred.done(function () {
-							//let's run the next validator once this has completed
-							runValidator(validators);
-						}).fail(function () {
-							//console.log('Validator deferred fails, resolving elementDeferred', $element);
-							//elementDeferred.resolve();
-						});
-						
-						//get first remaining validator and run it
-						validator    = validators.shift();
-						
-						//create asyncResultInstance
-						asyncResultInstance = AsyncResult($element, validatorDeferred, validator.name);
-						
-						//we need to store it, so to be able to revoke if user triggers validation again
-						$element.data('yavp.async-result-instance', asyncResultInstance);
-						
-						//call validator in $element's context and pass its params
-						result       = validator.callback.call(
-							$element,
-							asyncResultInstance,
-							$element.data('yavp.params')[validator.name] || {}
-							//validator.name in $element.data('yavp.params') ? $element.data('yavp.params')[validator.name] : {}
-						);
-
-						//if user returns boolean, we can immedietaly handle result
-						if (typeof result === 'boolean') {
-							result === true ? asyncResultInstance.success() : asyncResultInstance.error();
-						}
-							
-					})(validators);
-								
-					//only expose public interface
-					return elementDeferred.promise();
 				}
 								
 				if ($formOrField.prop('tagName').toLowerCase() === 'form') {
