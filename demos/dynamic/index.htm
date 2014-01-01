@@ -42,6 +42,10 @@
 									</div>
 								</div>
 							</span>
+							
+							<div class="form-group">
+								<input type="hidden" id="count" value="1">
+							</div>
 							<button type="submit" class="btn btn-info btn-block">Place Order!</button>
 						</form>
 					</div>
@@ -56,8 +60,10 @@
 		<script src="../../yavp.js"></script>
 		<script>
 			$(document).ready(function () {
-				//will be used to assign correct names and ids to new product rows
-				var current_id = 1;
+				
+				var $count     = $('#count'), //hidden field which is used to validate number of products
+					count      = $count.val(), //current number of products
+					current_id = 1; //will be used to assign correct names and ids to new product rows
 			
 				//delete button should remove its row
 				$('#product-form').on('click', '.delete-product', function (e) {
@@ -66,8 +72,12 @@
 					$(this).parents('.product-row').fadeOut('fast', function () {
 						$(this).remove();
 						
+						//increase the product counter and trigger validation for this field
+						$count.val(--count).yavp('validates');
+						
 						//crucial part, make Yavp process the form elements again
 						$('#product-form').yavp('refresh');
+						
 					})
 				});
 				
@@ -93,6 +103,9 @@
 						.hide()
 						.appendTo($('#products-container'))
 						.fadeIn('fast');
+					
+					//decrease the product counter and trigger validation for this field
+					$count.val(++count).yavp('validates');
 					
 					//crucial part, make Yavp process the form elements again
 					$('#product-form').yavp('refresh');
@@ -158,6 +171,19 @@
 							}
 						]	
 					},
+					{
+						selector          : '#count',
+						selectorOverwrite : true,
+						validators        : [
+							{
+								validator: 'range',
+								min      : 1
+							}
+						],
+						messages         : {
+							range : 'You have to order at least one product!'
+						}
+					}
 				]
 			});
 		
