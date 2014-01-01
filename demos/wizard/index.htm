@@ -1,0 +1,352 @@
+<!doctype>
+
+<html lang="en">
+	<head>
+		<title>Wizard - Yavp demo</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="../css/bootstrap.min.css" rel="stylesheet">
+		<link href="../css/style.css" rel="stylesheet">
+		<style type="text/css">
+			div.step, .dont-show {
+				display: none;
+			}
+			div.step.active {
+				display: block;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-6 col-md-offset-3">
+					<div class="well">
+					
+					
+						<ul class="nav nav-pills" id="step-indicators">
+							<li class="active"><a href="#">Personal</a></li>
+							<li class="disabled"><a href="#">Contact</a></li>
+							<li class="disabled"><a href="#">Addtional</a></li>
+						</ul>					
+						<br>
+						
+						<form id="signup-form" method="post" action="index.htm">
+						
+							<div class="step active">
+								<div class="form-group">
+									<label for="name" class="required">Name:</label>
+									<input type="text" class="form-control" id="name" name="name">
+								</div>
+								<div class="form-group">
+									<label for="password" class="required">Password:</label>
+									<input type="password" class="form-control" id="password" name="password">
+								</div>
+								<div class="form-group">
+									<label for="password_confirm" class="required">Password Confirm:</label>
+									<input type="password" class="form-control" id="password_confirm" name="password_confirm">
+								</div>
+								<div class="form-group">
+									<label for="avatar" class="required">Avatar:</label>
+									<input type="file" id="avatar" name="avatar">
+								</div>
+							</div>
+							
+							<div class="step">
+								<div class="form-group">
+									<label for="email" class="required">Email:</label>
+									<input type="text" class="form-control" id="email" name="email">
+								</div>
+								<div class="form-group">
+									<label for="phonw" class="required">Phone Number:</label>
+									<input type="text" class="form-control" id="phone" name="phone">
+								</div>
+							</div>							
+							
+							<div class="step">
+								<div class="form-group">
+									<label for="bio" class="required">Bio:</label>
+									<textarea class="form-control" id="bio" name="bio"></textarea>
+								</div>
+							</div>
+	
+							<div class="row">
+								<div class="col-md-12" id="step-controls">
+									<button class="btn btn-info pull-left dont-show previous">&laquo; Previous</button>
+									<button type="submit" class="btn btn-info pull-right next">Next &raquo;</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		
+		</div>
+		
+		
+		<script src="https://code.jquery.com/jquery.js"></script>
+		<script src="../js/bootstrap.min.js"></script>
+		<script src="../../yavp.js"></script>
+		<script>
+			$(document).ready(function () {
+				var $signup_form     = $('#signup-form'),
+					$step_controls   = $('#step-controls'),
+					$step_indicators = $('#step-indicators'),
+					$active_step,
+					$new_step;
+				
+				//don't send the form when user presses Enter
+				$signup_form.on('keydown', function (e) {
+					if (e.which === 13) {
+						e.preventDefault();
+						//try to move to the next step
+						nextStep();
+					}
+				})
+			
+				//Next/Previous buttons
+				$step_controls.on('click', '.next,.previous', function (e) {
+					var $this = $(this);
+					
+					//let user submit the form
+					if ($this.hasClass('complete')) {
+						return;
+					}
+					
+					e.preventDefault();
+					$this.hasClass('next') ? nextStep() : prevStep();
+					
+				});
+			
+				function nextStep() {				
+					$active_step = $signup_form.find('.step.active');
+
+					/*
+					Make sure all fields in this step are valid before proceeding to the next step.
+					We just need a collection of all elements we want to validate in this step: $active_step.find('input,textarea')
+					*/
+					$active_step.find('input,textarea').yavp('validates').done(function () {
+						$active_step.removeClass('active');
+						
+						$new_step = $active_step.next();
+						$new_step.addClass('active');
+						
+						$step_indicators
+							.find('.active')
+								.removeClass('active')
+								.addClass('disabled')
+							.next()
+								.removeClass('disabled')
+								.addClass('active');
+						
+						//let's check if we should show Previous button
+						if (!$step_controls.find('.previous').is(':visible') && $new_step.prev().length) {
+							$step_controls.find('.previous').show();
+						}
+						
+						//let's check if we should replace Next button with Complete
+						if (!$new_step.next('.step').length) {
+							$step_controls.find('.next').html('Complete &raquo;').removeClass('next').addClass('complete');
+						}
+						
+						//move focus to the first step element
+						$new_step.find('input:first').focus();
+					});
+						
+				}
+				
+				function prevStep() {
+					$active_step = $signup_form.find('.step.active');
+					$active_step.removeClass('active');
+					
+					$new_step = $active_step.prev();
+					$new_step.addClass('active');
+					
+					$step_indicators
+						.find('.active')
+							.removeClass('active')
+							.addClass('disabled')
+						.prev()
+							.removeClass('disabled')
+							.addClass('active');					
+					
+					//let's check if we should hide Previous button
+					if (!$new_step.prev().length) {
+						$step_controls.find('.previous').hide();
+					}
+					
+					//let's check if we should replace Complete button with Next
+					if ($step_controls.find('.complete').length) {
+						$step_controls.find('.complete').html('Next &raquo;').removeClass('complete').addClass('next');
+					}					
+					
+					//move focus to the first step element
+					$new_step.find('input:first').focus();
+				}
+				
+			
+				$signup_form.yavp({
+					elementError : function (message) {
+						var $element    = this,
+							$form_group = $element.parents('.form-group:first'),
+							$help_block = $form_group.find('.help-block.yavp-error');
+					
+						if (!$form_group.hasClass('has-error')) {
+							$form_group.addClass('has-error');
+						}
+						
+						if ($help_block.length === 0) {
+							$help_block = $('<span class="help-block yavp-error">').hide();
+							$help_block.appendTo($form_group);
+						}
+						
+						$help_block.text(message);
+					
+						if (!$help_block.is(':visible')) {
+							$help_block.fadeIn('fast');
+						}	
+					},
+					elementSuccess : function () {
+						var $element    = this,
+							$form_group = $element.parents('.form-group:first'),
+							$help_block = $form_group.find('.help-block.yavp-error');
+						
+						if ($form_group.hasClass('has-error')) {
+							$form_group.removeClass('has-error');
+						}
+						
+						if ($help_block.length === 1) {
+							$help_block.fadeOut('fast');
+						}					
+						
+					},
+					elementBefore  : function () {
+						this.addClass('processing');	
+					},
+					elementAfter  : function () {
+						this.removeClass('processing');	
+					},
+					fields : [
+						{
+							selector          : '#name',
+							/*
+							We need to use this to prevent Yavp from adding :visible:enabled to our selectors.
+							Some fields are not visible so they won't be correctly selected without it.
+							*/
+							selectorOverwrite : true, 
+							validators        : [
+								'required',
+								/^[a-z '.]+$/i
+							]
+							
+						},
+						{
+							selector          : '#email',
+							selectorOverwrite : true,
+							validators        : [
+								'required',
+								'email',
+								//function is named just to indicate what it does
+								function email_exists(result) {
+									var $element = this;
+
+									//simulate an AJAX call using setTimeout with random interval
+									setTimeout(function () {
+	
+										if ($element.val() == 'john@doe.net') {
+											result.error('Email already in use!');
+										} else {
+											result.success();
+										}
+									}, Math.floor(Math.random() * 2000) + 1000);
+									
+								}
+							]
+						},
+						{
+							selector          : '#phone',
+							selectorOverwrite : true,
+							validators        : [
+								'required',
+							]
+						},
+						{
+							//any valid selector will do, this is equal to #date_of_birth in this demo
+							selector          : 'input[name="password"]',
+							selectorOverwrite : true,
+							/*
+								once this field is validated, Yavp will proceed with validating "chained" elements
+								In this case we want to revalidate password_confirm
+							*/
+							chain             : '#password_confirm',
+							validators        : [
+								'required',
+								//function name is entirely optional
+								function strong_password(result) {
+									var $element = this;
+									
+									//we're mixing two ways of passing validation result
+									if ($element.val().length >= 4) {
+										//normal synchronous way that lets us immediately pass false/true 
+										return true;
+									} else {
+										//asynchronous way that lets us pass some additional params, such as error message 
+										result.error('Password should be at least 4 characters long');
+									}
+								},
+								
+							]
+						},
+						{
+							selector          : '#password_confirm',
+							selectorOverwrite : true,
+							//override the default error message for "equals" validator just for this element
+							messages          : {
+								equals : "These passwords don't look similar!"
+							},
+							validators        : [
+								/*
+									Since we want to pass additional params to the the validator, we can't just pass its name.
+									Instead we pass a hash with "validator" key set to validator's name, and "selector" which will
+									let Yavp find the field to compare
+								*/
+								{
+									validator : 'equals',
+									selector  : 'input[name="password"]'
+								}
+							]
+						},
+						{
+							selector          : '#avatar',
+							selectorOverwrite : true,
+							validators        : [
+								'required',
+								{
+									validator  : 'file',
+									extensions : ['txt', 'jpg']
+								}
+							],
+							messages         : {
+								required : 'Please pick a file'	
+							}
+						},
+						{
+							selector          : '#bio',
+							selectorOverwrite : true,
+							validators        : [
+								'required',
+								{
+									validator : 'length',
+									min       : 40,
+								}
+							],
+							messages          : {
+								required : 'We need to know something about you',
+								length   : 'You surely can write a few letters more...'
+							}
+						},
+					]
+				});				
+			});
+		</script>
+	</body>
+</html>
