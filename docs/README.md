@@ -473,7 +473,7 @@ $.fn.yavp.messages.format = 'Incorrect format!';
 
 ### Solutions to common problems.
 
-Some of those are issues I've stumbled upon when working on my projects but majority of issues have been found googling:
+Some of those are issues I've stumbled upon when working on my projects but majority of issues have been found googling for:
 site:stackoverflow.com jquery validation "how to"
 
 1. Checkboxes range
@@ -575,3 +575,5 @@ When you have quite a lot fields and have split them into tabs, you will need so
 
 
 9. Mulitple select
+
+10. Wizards - when you only need to validate a group of fields

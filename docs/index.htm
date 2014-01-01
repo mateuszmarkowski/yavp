@@ -8,7 +8,7 @@
 	
 	<body>
 		<div class="container">
-			<h1>Yavp Documention</h1>
+			<h1>Yavp Documention - Easy Promise-Driven Validation</h1>
 			
 			<p>Yavp is intended to be as flexible and intuitive validation plugin as possible with vastly reduced learning curve.</p>
 			
@@ -620,6 +620,188 @@ function (result, params) {
 
 <pre>$.fn.yavp.messages.format = 'Incorrect format!';</pre>
 	
+	
+			<h2 id="common-problems">Solutions to Common Problems</h2>
+			
+			<p>Some of those are issues I've stumbled upon when working on my projects but majority of issues have been found googling for:
+<code>site:stackoverflow.com jquery validation "how to"</code></p>
+
+			<h3 id="checkbox-range">Checkbox "Range"</h3>
+			
+			<p>Say you want to let your users pick at least one but no more than two checkboxes.</p>
+
+			<p>Just wrap all your checkboxes with some container (i.e. span, div), in this case it's just a <code>div#newsletters</code></p>
+			
+<pre>function (result) {
+   //how many checkboxes have been checked?
+   var checked = this
+      .parents('#newsletters') //get reference to the wrapping container
+      .find('[type="checkbox"]:checked') //find all checked checkboxes
+      .length; //count them
+      
+   if (checked === 0) {
+      result.error("Hey, pick at least one!");
+   } else if (checked > 2) {
+      result.error("No more than 2, please!");
+   } else {
+      return true;
+   }
+}</pre>
+
+			<h3>List of Errors</h3>
+		
+			<p>If you need a plain list of errors rather than displaying an error message for each invalid field, check this example.</p>
+	
+			<p><code>ul#errors</code> is a container where errors will be displayed.</p>
+			
+			<p>Instead of using <code>elementError</code> callbacks we will focus on <code>error</code>. This one is called when validation fails and receives a list of all errors as a param.</p>
+			
+<pre>var $error_container = $('ul#errors');
+
+$('#form').yavp({
+    error: function (errors) {
+        $.each(errors, function (i, error) {
+            $('&lt;li&gt;'+error.message+'&lt;/li&gt;').appendTo($error_container);   
+        });
+    },
+    fields: [
+        //...
+    ]
+});</pre>
+
+			<p>This is nice and easy but needs to be adjusted. Yavp is generally designed to display inline error messages which can be more generic, i.e. "This field's incorrect". When you display a list of errors somewhere else, for example above the form, you should probably include field's label in error message, otherwise users won't know where they made a mistake.</p>
+			
+			<p>There're two approaches to this problem, first one is more flexible and can save you some time if you have many fields. We will basically build error messages dynamically based on field's <code>label</code> tags. If your labels include some additional text like "Please enter your email", you could define actual field's label in a data- attribute:</p>
+			
+			<code>&lt;label for=&quot;email&quot; data-label=&quot;Email Address&quot;&gt;Please enter your email address:&lt;/label&gt;</code>
+			
+			<p>Now let's push some changes to build-in validators:</p>
+			
+<pre>/*You may need to adjust this function depending on your HTML structure.
+This one uses field's id attribute and seeks label with matching "for" attribute.*/
+
+function findLabel($field) {
+    return $('label[for="'+$field.attr('id')+'"]')
+        .data('label'); //or .text() depending on where you store field's name you want to use
+}
+
+$.fn.yavp.messages.required = function (params) {
+    return findLabel(this)+' is required.'; //message callbacks are executed in field's context
+}
+
+$.fn.yavp.messages.format = function (params) {
+    return findLabel(this)+' is incorrect.';
+}
+
+//and so on</pre>
+			
+			<p>If you need more control over your error messages, you can specify them explicitly for each field:</p>
+			
+<pre>$('#form').yavp({
+    fields: [
+        {
+            selector  : '#name',
+            messages  : {
+                required: 'We would love to know your name!'
+            },
+            validators: [
+                'required'
+            ]
+        },
+        {
+            selector  : '#email',
+            messages  : {
+                required: "You surely have an email box, don't you?",
+                email   : "Our pigeon spotted a typo in your email!"
+            },
+            validators: [
+                'required',
+                'email'
+            ]
+        
+        }
+    ]
+});</pre>
+			
+			<h3>Dynamic Form</h3>
+			
+			<p>Sometimes, you may need to modify your form after yavp has been initiated. Since Yavp stores all form element references in a cache, it won't be able to reflect any DOM changes until you refresh its cache:</p>
+			
+			<p>Add your element(s) first and then call:</p>
+			
+			<code>$('#your-form').yavp('refresh');</code>
+	
+			<p>Once this has been called, Yavp will process all form elements again including the ones you may have added or modified. Also remember that one field declaration can match unlimited number of DOM elemnts, just use class select i.e. <code>.name</code> instead of id or name.</p>
+			
+			<h3>Ignore Default Values</h3>
+			
+			<p>If you for some reason want to use default values instead of placeholders, you can simply override <b>required</b> validator and add some data- attributes to specify default values.</p>
+			
+<pre>$.fn.yavp.validators.required = function () {
+   if (this.val() == this.data('default-value')) {
+      return false;
+   }
+
+   return this.val().length === 0 ? false : true;
+}</pre>
+
+			<p>Then just don't forget to specify your default values in data-default-value attributes like this:</p>
+			<code>&lt;input type=&quot;text&quot; name=&quot;name&quot; value=&quot;John Doe&quot; data-default-value=&quot;John Doe&quot;&gt;</code>
+	
+			<h3>Radio Inputs</h3>
+			
+			<p>Please follow the <a href="#checkbox-range">Checkbox Range</a> example.</p>
+	
+			<h3>One Form Field Required</h3>
+			
+			<p>Sometimes you need users to fill at least one field and you don't care which one.</p>
+			
+			<p>In this case you shouldn't really specify <code>elementError</code> callback but rather <code>error</code> and use this validator:</p>
+	
+<pre>$('#form').yavp({
+   error  : function () {
+      alert('At least one field should be filled!');
+   },
+   fields : [
+      {
+         selector  : 'input[type="text"]', //adjust this to match fields user can choose from
+         validators: [
+            function () {
+               var filled = (function ($fields) {
+                  var _filled = 0;
+               
+                  $fields.each(function () {
+                     if ($(this).val().length > 0) {
+                        _filled += 1;
+                     }
+                  });
+               
+                  return _filled;
+               })(this.parents('form').find('input[type="text"]'));
+               
+               return filled > 0;
+            }
+         ]
+      }
+   ]
+});</pre>	
+		
+			<h3>AJAX Form</h3>
+
+			<p>More than often you will need a form sent asynchronously without refreshing the page. It's pretty straightforward:</p>
+
+			<h3>Mulitple Select</h3>
+
+			<h3 id="wizards">Wizards</h3>
+			
+			<p>When you only need to validate a group of fields	at once so user can proceed to the next step, please check the <a href="">Wizards</a> example.</p>
+			
+					
+	
+			<h3>Trigger Validation Manually</h3>
+			
+			<p>Yavp lets you trigger validation manually not only for a form, single element, but also for a group of elements, like it was introduced in <a href="#wizards">Wizards</a> example.</p>
+			
 		</div>
 	
 	</body>
