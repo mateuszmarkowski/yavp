@@ -6,20 +6,21 @@
 	$.fn.yavp = function Yavp () {
 		var args     = arguments,
 			settings = {
-				success       : Yavp.success        || null,
-				error         : Yavp.error          || null,
-				elementSuccess: Yavp.elementSuccess || null,
-				elementError  : Yavp.elementError   || null,
-				before        : Yavp.before         || null,
-				after         : Yavp.after          || null,
-				elementBefore : Yavp.elementBefore  || null,
-				elementAfter  : Yavp.elementAfter   || null,
-				triggers      : Yavp.trigers        || ['change', 'keydown'],
-				debounce      : Yavp.debounce       || 350,
-				validators    : Yavp.validators     || {},
-				messages      : Yavp.messages       || {},
-				collections   : Yavp.collections    || {},
-				fields        : {}
+				success          : Yavp.success           || null,
+				error            : Yavp.error             || null,
+				elementSuccess   : Yavp.elementSuccess    || null,
+				elementError     : Yavp.elementError      || null,
+				before           : Yavp.before            || null,
+				after            : Yavp.after             || null,
+				elementBefore    : Yavp.elementBefore     || null,
+				elementAfter     : Yavp.elementAfter      || null,
+				triggers         : Yavp.trigers           || ['change', 'keydown'],
+				debounce         : Yavp.debounce          || 350,
+				validators       : Yavp.validators        || {},
+				messages         : Yavp.messages          || {},
+				collections      : Yavp.collections       || {},
+				selectorOverwrite: typeof Yavp.selectorOverwrite === 'undefined' ? false : Yavp.selectorOverwrite,
+				fields           : {}
 			},
 			$formCache,
 			$form,
@@ -52,7 +53,7 @@
 			_continue               = false;
 			anonymousValidatorIndex = 100;
 			
-			if (typeof args[0] == 'function') {
+			if (typeof args[0] === 'function') {
 				settings = $.extend(true, {}, settings, {
 					success : args[0]
 				});
@@ -103,7 +104,8 @@
 					}
 					
 					//user may want to use only the selector he specified without any yavp addons such as :visible:enabled
-					if (elementSettings.selectorOverwrite !== true) {
+					if ((settings.selectorOverwrite !== true && elementSettings.selectorOverwrite !== true) ||
+						(settings.selectorOverwrite === true && elementSettings.selectorOverwrite === false)) {
 						elementSettings.selector += ':visible:enabled';
 					}
 					
@@ -702,6 +704,15 @@
 				return 'Please pick a number smaller than ' + params.max;
 			}
 		},
+		'length'    : function (params) {
+			if (params.min && params.max) {
+				return 'Enter between ' + params.min + ' and ' + params.max + ' characters';
+			} else if (params.min) {
+				return 'Enter at least ' + params.min + ' characters';
+			} else {
+				return 'Enter at most ' + params.max + ' characters';
+			}
+		},		
 		'file'      : function (params) {
 			var allowedExtensions = Array.isArray(params.extensions) ? params.extensions : [params.extensions];
 		
