@@ -534,12 +534,6 @@
 						mainDeferred.resolve();
 					}).fail(function () {
 						mainDeferred.reject();
-/*
-						$.each(promises, function (i, e) {
-							console.log(e.state());
-						});
-						console.log('some failed')
-*/
 					});
 					
 				} else {
