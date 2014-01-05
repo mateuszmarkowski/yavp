@@ -201,8 +201,8 @@
 									
 										$element.prop('tagName').toLowerCase() === 'textarea') {
 								
-								$elements.data('yavp.cache-success', []);
-								$elements.data('yavp.cache-error', {});	
+								$elements.data('yavp.cacheSuccess', []);
+								$elements.data('yavp.cacheError', {});	
 							}
 						});
 					}
@@ -273,9 +273,9 @@
 					dontCache         = false,
 					elementDeferred   = $.Deferred(); //element deferred
 				
-				if ($element.data('yavp.async-result-instance') && $element.data('yavp.async-result-instance').status === 'active') {
+				if ($element.data('yavp.asyncResultInstance') && $element.data('yavp.asyncResultInstance').status === 'active') {
 					//element is still being validated, i.e. AJAX request is in process, we need to make sure that the result will be ignored
-					$element.data('yavp.async-result-instance').revoke();
+					$element.data('yavp.asyncResultInstance').revoke();
 				}
 				
 				if (settings.elementBefore) {
@@ -286,10 +286,10 @@
 					var $this = $(this);
 											
 					//cache the current value, so we won't validate it again
-					if (dontCache === false && typeof $this.data('yavp.cache-success') === 'object') {
+					if (dontCache === false && typeof $this.data('yavp.cacheSuccess') === 'object') {
 						//also make sure it's not already cached
-						if ($.inArray($this.val(), $this.data('yavp.cache-success')) === -1) {
-							$this.data('yavp.cache-success').push($this.val());
+						if ($.inArray($this.val(), $this.data('yavp.cacheSuccess')) === -1) {
+							$this.data('yavp.cacheSuccess').push($this.val());
 						}
 					}
 						
@@ -335,9 +335,9 @@
 						message = message.call($this, $this.data('yavp.params')[type] || {});
 					}
 	
-					if (dontCache === false && typeof $this.data('yavp.cache-error') === 'object') {
+					if (dontCache === false && typeof $this.data('yavp.cacheError') === 'object') {
 						//we need to cache error type along with the message
-						$this.data('yavp.cache-error')[$this.val()] =  {
+						$this.data('yavp.cacheError')[$this.val()] =  {
 							type    : type,
 							message : message
 						};
@@ -420,10 +420,10 @@
 				});	
 				
 				//let's check with the error cache first
-				if (typeof $element.data('yavp.cache-error') == 'object' &&
-					$element.val() in $element.data('yavp.cache-error')) {
+				if (typeof $element.data('yavp.cacheError') == 'object' &&
+					$element.val() in $element.data('yavp.cacheError')) {
 					
-					var error = $element.data('yavp.cache-error')[$element.val()];
+					var error = $element.data('yavp.cacheError')[$element.val()];
 					
 					//create new AsyncResult and immeditately resolve error
 					(new AsyncResult($element, elementDeferred, error.type)).error(error.message);
@@ -432,8 +432,8 @@
 				}					
 				
 				//let's check with the success cache next
-				if (typeof $element.data('yavp.cache-success') == 'object' &&
-					$.inArray($element.val(), $element.data('yavp.cache-success')) > -1) {
+				if (typeof $element.data('yavp.cacheSuccess') == 'object' &&
+					$.inArray($element.val(), $element.data('yavp.cacheSuccess')) > -1) {
 
 					(new AsyncResult($element, elementDeferred)).success();
 					return elementDeferred.promise();
@@ -466,7 +466,7 @@
 					asyncResultInstance = AsyncResult($element, validatorDeferred, validator.name);
 					
 					//we need to store it, so to be able to revoke if user triggers validation again
-					$element.data('yavp.async-result-instance', asyncResultInstance);
+					$element.data('yavp.asyncResultInstance', asyncResultInstance);
 					
 					//call validator in $element's context and pass its params
 					result       = validator.callback.call(
