@@ -187,6 +187,15 @@
 					//make sure it won't get overwritten when field is matched by more than one selector
 					$elements.data('yavp.messages', elementSettings.messages || {});
 					
+					//user may want to use specifc elementSuccess or elementError for this field
+					if (typeof elementSettings.elementSuccess === 'function') {
+						$elements.data('elementSuccess', elementSettings.elementSuccess);
+					}
+					
+					if (typeof elementSettings.elementError === 'function') {
+						$elements.data('elementError', elementSettings.elementError);
+					}
+					
 					if (settings.cache !== false || typeof elementSettings.cache === 'undefined' ||
 						(typeof elementSettings.cache !== 'undefined' && elementSettings.cache !== false)) {
 						
@@ -292,8 +301,11 @@
 							$this.data('yavp.cacheSuccess').push($this.val());
 						}
 					}
-						
-					if (settings.elementSuccess) {
+					
+					//let's check element specific callback and then global one
+					if ($this.data('elementSuccess')) {
+						$this.data('elementSuccess').call($this);
+					} else if (settings.elementSuccess) {
 						settings.elementSuccess.call($this);
 					}
 
@@ -349,7 +361,10 @@
 						message: message
 					});
 					
-					if (settings.elementError) {
+					//let's check element specific callback and then global one
+					if ($this.data('elementError')) {
+						$this.data('elementError').call($this, message, type);
+					} else if (settings.elementError) {
 						settings.elementError.call($this, message, type);
 					}
 
