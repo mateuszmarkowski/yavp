@@ -292,8 +292,8 @@
 				}
 							
 				function applySuccess() {
-					var $this = $(this);
-											
+					var $this = this;
+								
 					//cache the current value, so we won't validate it again
 					if (dontCache === false && typeof $this.data('yavp.cacheSuccess') === 'object') {
 						//also make sure it's not already cached
