@@ -1,4 +1,1 @@
-yavp
-====
-
-Yet Another Validation Plugin
+####Yavp - Easy Promise-Driven Validation
