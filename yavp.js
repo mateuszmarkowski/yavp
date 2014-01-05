@@ -15,7 +15,7 @@
 				elementBefore    : Yavp.elementBefore     || null,
 				elementAfter     : Yavp.elementAfter      || null,
 				triggers         : Yavp.trigers           || ['change', 'keydown'],
-				debounce         : Yavp.debounce          || 350,
+				debounce         : typeof Yavp.debounce === 'undefined' ? 350 : Yavp.debounce,
 				validators       : Yavp.validators        || {},
 				messages         : Yavp.messages          || {},
 				collections      : Yavp.collections       || {},
