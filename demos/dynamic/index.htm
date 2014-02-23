@@ -73,7 +73,9 @@
 						$(this).remove();
 						
 						//increase the product counter and trigger validation for this field
-						$count.val(--count).yavp('validates');
+						$count
+							.val(--count)
+							.yavp('validates');
 						
 						//crucial part, make Yavp process the form elements again
 						$('#product-form').yavp('refresh');
@@ -105,7 +107,9 @@
 						.fadeIn('fast');
 					
 					//decrease the product counter and trigger validation for this field
-					$count.val(++count).yavp('validates');
+					$count
+						.val(++count)
+						.yavp('validates');
 					
 					//crucial part, make Yavp process the form elements again
 					$('#product-form').yavp('refresh');
@@ -173,7 +177,7 @@
 					},
 					{
 						selector          : '#count',
-						selectorOverwrite : true,
+						selectorOverwrite : true, //it's a hidden field, so we don't want Yavp to add :visible:enabled to our selector
 						validators        : [
 							{
 								validator: 'range',

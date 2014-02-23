@@ -87,6 +87,8 @@
 		<script src="../js/bootstrap.min.js"></script>
 		<script src="../../yavp.js"></script>
 		<script>
+			$.fn.yavp.debounce = false;
+		
 			$(document).ready(function () {
 				var $signup_form     = $('#signup-form'),
 					$step_controls   = $('#step-controls'),
@@ -225,14 +227,14 @@
 					elementAfter  : function () {
 						this.removeClass('processing');	
 					},
+					selectorOverwrite: true,
 					fields : [
 						{
 							selector          : '#name',
 							/*
 							We need to use this to prevent Yavp from adding :visible:enabled to our selectors.
 							Some fields are not visible so they won't be correctly selected without it.
-							*/
-							selectorOverwrite : true, 
+							*/ 
 							validators        : [
 								'required',
 								/^[a-z '.]+$/i
@@ -241,7 +243,6 @@
 						},
 						{
 							selector          : '#email',
-							selectorOverwrite : true,
 							validators        : [
 								'required',
 								'email',
@@ -264,7 +265,6 @@
 						},
 						{
 							selector          : '#phone',
-							selectorOverwrite : true,
 							validators        : [
 								'required',
 							]
@@ -272,7 +272,6 @@
 						{
 							//any valid selector will do, this is equal to #date_of_birth in this demo
 							selector          : 'input[name="password"]',
-							selectorOverwrite : true,
 							/*
 								once this field is validated, Yavp will proceed with validating "chained" elements
 								In this case we want to revalidate password_confirm
@@ -298,7 +297,6 @@
 						},
 						{
 							selector          : '#password_confirm',
-							selectorOverwrite : true,
 							//override the default error message for "equals" validator just for this element
 							messages          : {
 								equals : "These passwords don't look similar!"
@@ -317,7 +315,6 @@
 						},
 						{
 							selector          : '#avatar',
-							selectorOverwrite : true,
 							validators        : [
 								'required',
 								{
@@ -331,7 +328,6 @@
 						},
 						{
 							selector          : '#bio',
-							selectorOverwrite : true,
 							validators        : [
 								'required',
 								{
