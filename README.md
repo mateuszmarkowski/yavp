@@ -1,4 +1,6 @@
-# Yavp Documention - Easy Promise-Driven Validation
+# Yavp Documention
+
+## Easy Promise-Driven Validation
 
 Yavp is intended to be as flexible and intuitive validation plugin as possible with vastly reduced learning curve.
 
