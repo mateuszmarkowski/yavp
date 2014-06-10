@@ -1,5 +1,10 @@
-//Yet Another Validation Plugin
-//Mateusz Markowski
+/*!
+ * Yet Another Validation Plugin v1.0.0
+ * https://github.com/mateuszmarkowski/yavp
+ *
+ * Copyright 2013, 2014 Mateusz Markowski
+ * Released under the MIT license
+ */
 
 (function($) {
 	
