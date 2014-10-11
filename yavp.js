@@ -8,7 +8,7 @@
 
 (function($) {
 	
-	$.fn.yavp = function Yavp () {
+	function Yavp () {
 		var args     = arguments,
 			settings = {
 				success          : Yavp.success           || null,
@@ -612,7 +612,9 @@
 		return this;
 	};
 
-	$.fn.yavp.validators = {
+	$.fn.yavp = Yavp;
+
+	Yavp.validators = {
 		'optional'    : function (result) {
 			if (this.val().length === 0) {
 				//we pass true, so no further validators will be processed for this element
@@ -704,7 +706,7 @@
 		}
 	};
 	
-	$.fn.yavp.messages = {
+	Yavp.messages = {
 		'format'    : 'Incorrect format',
 		'equals'    : "Fields don't match",
 		'required'  : 'Required field',
